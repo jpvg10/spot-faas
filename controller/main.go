@@ -32,6 +32,8 @@ func (s *server) SetOutput(ctx context.Context, in *pb.JobOutput) (*empty.Empty,
 }
 
 func main() {
+	go runApi()
+
 	flag.Parse()
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
