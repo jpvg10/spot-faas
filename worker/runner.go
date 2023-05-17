@@ -2,12 +2,21 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 	"os/exec"
 )
 
-func runJob(params string) string {
-	cmd := exec.Command("docker", "run", "worker")
+func runJob(param string) string {
+	dockerCommand := make([]string, 0)
+	dockerCommand = append(dockerCommand, "run")
+
+	if len(param) > 0 {
+		dockerCommand = append(dockerCommand, "-e", fmt.Sprintf("MESSAGE=%v", param))
+	}
+	dockerCommand = append(dockerCommand, "worker")
+
+	cmd := exec.Command("docker", dockerCommand...)
 
 	var cmdOut bytes.Buffer
 	var cmdErr bytes.Buffer
