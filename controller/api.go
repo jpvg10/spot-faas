@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 )
@@ -11,6 +12,7 @@ type payload struct {
 }
 
 var messages = []string{}
+var mu sync.Mutex
 
 func getMessages(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, messages)
@@ -23,8 +25,9 @@ func postMessage(c *gin.Context) {
 		return
 	}
 
-	// Add the new album to the slice.
+	mu.Lock()
 	messages = append(messages, newAlbum.Message)
+	mu.Unlock()
 	c.IndentedJSON(http.StatusCreated, newAlbum)
 }
 

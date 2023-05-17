@@ -23,7 +23,14 @@ type server struct {
 
 func (s *server) GetParams(ctx context.Context, in *pb.PingMessage) (*pb.JobParameters, error) {
 	log.Printf("Sent params: %v", in.GetAddress())
-	return &pb.JobParameters{Name: "job"}, nil
+	param := ""
+	mu.Lock()
+	if len(messages) > 0 {
+		param = messages[0]
+		messages = messages[1:]
+	}
+	mu.Unlock()
+	return &pb.JobParameters{Name: param}, nil
 }
 
 func (s *server) SetOutput(ctx context.Context, in *pb.JobOutput) (*empty.Empty, error) {
