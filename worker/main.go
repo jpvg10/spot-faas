@@ -12,13 +12,8 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-const (
-	defaultAddress = "localhost:50052"
-)
-
 var (
 	controllerAddress = flag.String("controller", "localhost:50051", "The address to connect to")
-	address           = flag.String("address", defaultAddress, "The address of this process (worker)")
 )
 
 func main() {
@@ -36,7 +31,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	r, err := c.GetParams(ctx, &pb.PingMessage{Address: *address})
+	r, err := c.GetParams(ctx, &pb.PingMessage{Address: "worker"})
 	if err != nil {
 		log.Fatalf("Failed to get params: %v", err)
 	}

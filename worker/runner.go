@@ -8,8 +8,7 @@ import (
 )
 
 func runJob(param string) string {
-	dockerCommand := make([]string, 0)
-	dockerCommand = append(dockerCommand, "run")
+	dockerCommand := []string{"run"}
 
 	if len(param) > 0 {
 		dockerCommand = append(dockerCommand, "-e", fmt.Sprintf("MESSAGE=%v", param))
