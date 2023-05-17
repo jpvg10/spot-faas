@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"log"
 	"os/exec"
 )
@@ -18,10 +17,10 @@ func runJob(params string) string {
 	err := cmd.Run()
 
 	if err != nil {
-		fmt.Println(cmdErr.String())
+		log.Print(cmdErr.String())
 		log.Fatal(err)
 	}
 
-	fmt.Printf("Container output: %s\n", cmdOut.String())
+	log.Printf("Container output: %s\n", cmdOut.String())
 	return cmdOut.String()
 }

@@ -21,13 +21,8 @@ type server struct {
 	pb.UnimplementedControllerServer
 }
 
-var clients []string
-
 func (s *server) GetParams(ctx context.Context, in *pb.PingMessage) (*pb.JobParameters, error) {
-	log.Printf("Connection: %v", in.GetAddress())
-	clients = append(clients, in.GetAddress())
-	fmt.Println(clients)
-
+	log.Printf("Sent params: %v", in.GetAddress())
 	return &pb.JobParameters{Name: "job"}, nil
 }
 
@@ -41,13 +36,13 @@ func main() {
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		log.Fatalf("Failed to listen: %v", err)
 	}
 
 	s := grpc.NewServer()
 	pb.RegisterControllerServer(s, &server{})
-	log.Printf("server listening at %v", lis.Addr())
+	log.Printf("Server listening at %v", lis.Addr())
 	if err := s.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
+		log.Fatalf("Failed to serve: %v", err)
 	}
 }
