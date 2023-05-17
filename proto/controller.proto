@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+option go_package = "thesis/poc";
+
+package controller;
+
+service Controller {
+  rpc GetParams(PingMessage) returns (JobParameters) {}
+  rpc SetOutput(JobOutput) returns (google.protobuf.Empty) {}
+}
+
+message PingMessage {
+  string address = 1;
+}
+
+message JobParameters {
+  string name = 1;
+}
+
+message JobOutput {
+  string output = 1;
+}
