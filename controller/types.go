@@ -8,4 +8,5 @@ type job struct {
 	Id        string `json:"id"`
 	Message   string `json:"message"`
 	Completed bool   `json:"completed"`
+	Output    string `json:"output,omitempty"`
 }

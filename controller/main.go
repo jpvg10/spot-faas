@@ -42,6 +42,18 @@ func (s *server) GetParams(ctx context.Context, in *pb.PingMessage) (*pb.JobPara
 
 func (s *server) SetOutput(ctx context.Context, in *pb.JobOutput) (*emptypb.Empty, error) {
 	log.Printf("Received output: %v", in.GetOutput())
+
+	mu.Lock()
+	defer mu.Unlock()
+
+	for i := range jobs {
+		if jobs[i].Id == in.GetId() {
+			jobs[i].Completed = true
+			jobs[i].Output = in.GetOutput()
+			break
+		}
+	}
+
 	return &emptypb.Empty{}, nil
 }
 
