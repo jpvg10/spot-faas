@@ -36,14 +36,17 @@ func postMessage(c *gin.Context) {
 func getMessage(c *gin.Context) {
 	id := c.Param("id")
 
-	for _, a := range jobs {
-		if a.Id == id {
-			c.IndentedJSON(http.StatusOK, a)
+	mu.Lock()
+	defer mu.Unlock()
+
+	for _, j := range jobs {
+		if j.Id == id {
+			c.IndentedJSON(http.StatusOK, j)
 			return
 		}
 	}
 
-	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "not found"})
+	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Not found"})
 }
 
 func runApi() {

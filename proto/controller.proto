@@ -16,9 +16,11 @@ message PingMessage {
 }
 
 message JobParameters {
-  string name = 1;
+  string id = 1;
+  string message = 2;
 }
 
 message JobOutput {
-  string output = 1;
+  string id = 1;
+  string output = 2;
 }

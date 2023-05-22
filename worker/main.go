@@ -37,13 +37,13 @@ func main() {
 	}
 
 	// Do the job
-	jobOutput := runJob(r.GetName())
+	jobOutput := runJob(r.GetMessage())
 
 	// Send the output
 	ctx, cancel = context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	_, err = c.SetOutput(ctx, &pb.JobOutput{Output: jobOutput})
+	_, err = c.SetOutput(ctx, &pb.JobOutput{Id: r.GetId(), Output: jobOutput})
 	if err != nil {
 		log.Fatal("Failed to send", err)
 	}
