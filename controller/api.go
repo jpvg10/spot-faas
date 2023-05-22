@@ -30,6 +30,8 @@ func postMessage(c *gin.Context) {
 	jobs = append(jobs, newJob)
 	mu.Unlock()
 
+	go createVM("spot")
+
 	c.IndentedJSON(http.StatusCreated, newJob)
 }
 

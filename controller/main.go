@@ -55,6 +55,8 @@ func (s *server) SetOutput(ctx context.Context, in *pb.JobOutput) (*emptypb.Empt
 		}
 	}
 
+	go deleteVM("spot")
+
 	return &emptypb.Empty{}, nil
 }
 
