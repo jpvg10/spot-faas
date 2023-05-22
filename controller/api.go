@@ -34,7 +34,6 @@ func postMessage(c *gin.Context) {
 func runApi() {
 	router := gin.Default()
 	router.GET("/messages", getMessages)
-	// router.GET("/albums/:id", getAlbumByID)
 	router.POST("/message", postMessage)
 
 	router.Run("localhost:8080")

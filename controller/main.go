@@ -9,8 +9,11 @@ import (
 
 	pb "thesis/poc/proto"
 
-	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/peer"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 var (
@@ -22,20 +25,26 @@ type server struct {
 }
 
 func (s *server) GetParams(ctx context.Context, in *pb.PingMessage) (*pb.JobParameters, error) {
-	log.Printf("Sent params: %v", in.GetAddress())
+	p, _ := peer.FromContext(ctx)
+	log.Printf("Received request from: %v", p.Addr)
+
 	param := ""
+
 	mu.Lock()
+	defer mu.Unlock()
+
 	if len(messages) > 0 {
 		param = messages[0]
 		messages = messages[1:]
+		return &pb.JobParameters{Name: param}, nil
+	} else {
+		return nil, status.Error(codes.NotFound, "No params found")
 	}
-	mu.Unlock()
-	return &pb.JobParameters{Name: param}, nil
 }
 
-func (s *server) SetOutput(ctx context.Context, in *pb.JobOutput) (*empty.Empty, error) {
+func (s *server) SetOutput(ctx context.Context, in *pb.JobOutput) (*emptypb.Empty, error) {
 	log.Printf("Received output: %v", in.GetOutput())
-	return &empty.Empty{}, nil
+	return &emptypb.Empty{}, nil
 }
 
 func main() {
