@@ -28,15 +28,15 @@ func (s *server) GetParams(ctx context.Context, in *pb.PingMessage) (*pb.JobPara
 	p, _ := peer.FromContext(ctx)
 	log.Printf("Received request from: %v", p.Addr)
 
-	param := ""
+	var param *job
 
 	mu.Lock()
 	defer mu.Unlock()
 
-	if len(messages) > 0 {
-		param = messages[0]
-		messages = messages[1:]
-		return &pb.JobParameters{Name: param}, nil
+	if len(jobs) > 0 {
+		param = &jobs[0]
+		jobs = jobs[1:]
+		return &pb.JobParameters{Name: param.Message}, nil
 	} else {
 		return nil, status.Error(codes.NotFound, "No params found")
 	}
