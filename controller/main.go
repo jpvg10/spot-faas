@@ -31,8 +31,9 @@ func (s *server) GetParams(ctx context.Context, in *emptypb.Empty) (*pb.JobParam
 	mu.Lock()
 	defer mu.Unlock()
 
-	for _, j := range jobs {
-		if !j.Completed {
+	for i, j := range jobs {
+		if j.Status == Pending {
+			jobs[i].Status = InProgress
 			return &pb.JobParameters{Id: j.Id, Message: j.Message}, nil
 		}
 	}
@@ -48,7 +49,7 @@ func (s *server) SetOutput(ctx context.Context, in *pb.JobOutput) (*emptypb.Empt
 
 	for i := range jobs {
 		if jobs[i].Id == in.GetId() {
-			jobs[i].Completed = true
+			jobs[i].Status = Completed
 			jobs[i].Output = in.GetOutput()
 			break
 		}

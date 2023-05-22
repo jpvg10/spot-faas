@@ -24,7 +24,7 @@ func postMessage(c *gin.Context) {
 
 	id := uuid.New()
 
-	newJob := job{Id: id.String(), Message: newMessage.Message, Completed: false}
+	newJob := job{Id: id.String(), Message: newMessage.Message, Status: Pending}
 
 	mu.Lock()
 	jobs = append(jobs, newJob)
