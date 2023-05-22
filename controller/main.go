@@ -24,7 +24,7 @@ type server struct {
 	pb.UnimplementedControllerServer
 }
 
-func (s *server) GetParams(ctx context.Context, in *pb.PingMessage) (*pb.JobParameters, error) {
+func (s *server) GetParams(ctx context.Context, in *emptypb.Empty) (*pb.JobParameters, error) {
 	p, _ := peer.FromContext(ctx)
 	log.Printf("Received request from: %v", p.Addr)
 

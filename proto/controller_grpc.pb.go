@@ -23,7 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ControllerClient interface {
-	GetParams(ctx context.Context, in *PingMessage, opts ...grpc.CallOption) (*JobParameters, error)
+	GetParams(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*JobParameters, error)
 	SetOutput(ctx context.Context, in *JobOutput, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
@@ -35,7 +35,7 @@ func NewControllerClient(cc grpc.ClientConnInterface) ControllerClient {
 	return &controllerClient{cc}
 }
 
-func (c *controllerClient) GetParams(ctx context.Context, in *PingMessage, opts ...grpc.CallOption) (*JobParameters, error) {
+func (c *controllerClient) GetParams(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*JobParameters, error) {
 	out := new(JobParameters)
 	err := c.cc.Invoke(ctx, "/controller.Controller/GetParams", in, out, opts...)
 	if err != nil {
@@ -57,7 +57,7 @@ func (c *controllerClient) SetOutput(ctx context.Context, in *JobOutput, opts ..
 // All implementations must embed UnimplementedControllerServer
 // for forward compatibility
 type ControllerServer interface {
-	GetParams(context.Context, *PingMessage) (*JobParameters, error)
+	GetParams(context.Context, *emptypb.Empty) (*JobParameters, error)
 	SetOutput(context.Context, *JobOutput) (*emptypb.Empty, error)
 	mustEmbedUnimplementedControllerServer()
 }
@@ -66,7 +66,7 @@ type ControllerServer interface {
 type UnimplementedControllerServer struct {
 }
 
-func (UnimplementedControllerServer) GetParams(context.Context, *PingMessage) (*JobParameters, error) {
+func (UnimplementedControllerServer) GetParams(context.Context, *emptypb.Empty) (*JobParameters, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetParams not implemented")
 }
 func (UnimplementedControllerServer) SetOutput(context.Context, *JobOutput) (*emptypb.Empty, error) {
@@ -86,7 +86,7 @@ func RegisterControllerServer(s grpc.ServiceRegistrar, srv ControllerServer) {
 }
 
 func _Controller_GetParams_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PingMessage)
+	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -98,7 +98,7 @@ func _Controller_GetParams_Handler(srv interface{}, ctx context.Context, dec fun
 		FullMethod: "/controller.Controller/GetParams",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ControllerServer).GetParams(ctx, req.(*PingMessage))
+		return srv.(ControllerServer).GetParams(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }

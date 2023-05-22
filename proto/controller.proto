@@ -7,12 +7,8 @@ option go_package = "thesis/poc";
 package controller;
 
 service Controller {
-  rpc GetParams(PingMessage) returns (JobParameters) {}
+  rpc GetParams(google.protobuf.Empty) returns (JobParameters) {}
   rpc SetOutput(JobOutput) returns (google.protobuf.Empty) {}
-}
-
-message PingMessage {
-  string address = 1;
 }
 
 message JobParameters {
