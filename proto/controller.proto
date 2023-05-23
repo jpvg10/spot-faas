@@ -2,7 +2,7 @@ syntax = "proto3";
 
 import "google/protobuf/empty.proto";
 
-option go_package = "thesis/poc";
+option go_package = "thesis/proto";
 
 package controller;
 

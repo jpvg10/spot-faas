@@ -1,4 +1,4 @@
-module thesis/poc
+module thesis/controller
 
 go 1.18
 

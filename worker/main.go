@@ -9,7 +9,7 @@ import (
 	"os/exec"
 	"time"
 
-	pb "thesis/poc/proto"
+	pb "thesis/proto"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
