@@ -32,10 +32,17 @@ func postMessage(c *gin.Context) {
 	jobs = append(jobs, newJob)
 	mu.Unlock()
 
-	ip := "localhost"
-	if !*local {
+	var ip string
+
+	if *local {
+		ip = "localhost"
+	} else {
 		ip = createVM("spot")
+		log.Println(ip)
 	}
+
+	port := "50051"
+	ip = ip + ":" + port
 
 	conn, err := grpc.Dial(ip, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {

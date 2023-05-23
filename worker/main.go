@@ -14,6 +14,14 @@ import (
 	"google.golang.org/grpc"
 )
 
+var (
+	port = flag.Int("port", 50051, "The GRPC server port")
+)
+
+type server struct {
+	pb.UnimplementedWorkerServer
+}
+
 func runJob(param string) string {
 	dockerCommand := []string{"run"}
 
@@ -36,16 +44,8 @@ func runJob(param string) string {
 		log.Fatal(err)
 	}
 
-	log.Printf("Container output: %s\n", cmdOut.String())
+	// log.Printf("Container output: %s\n", cmdOut.String())
 	return cmdOut.String()
-}
-
-var (
-	port = flag.Int("port", 50051, "The server port")
-)
-
-type server struct {
-	pb.UnimplementedWorkerServer
 }
 
 func (s *server) RunJob(ctx context.Context, in *pb.JobParameters) (*pb.JobOutput, error) {
