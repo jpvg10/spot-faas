@@ -6,18 +6,12 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net"
 	"os/exec"
-	"time"
 
 	pb "thesis/proto"
 
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/protobuf/types/known/emptypb"
-)
-
-var (
-	controllerAddress = flag.String("controller", "localhost:50051", "The address to connect to")
 )
 
 func runJob(param string) string {
@@ -46,35 +40,35 @@ func runJob(param string) string {
 	return cmdOut.String()
 }
 
+var (
+	port = flag.Int("port", 50051, "The server port")
+)
+
+type server struct {
+	pb.UnimplementedWorkerServer
+}
+
+func (s *server) RunJob(ctx context.Context, in *pb.JobParameters) (*pb.JobOutput, error) {
+	// p, _ := peer.FromContext(ctx)
+	// log.Printf("Received request from: %v", p.Addr)
+
+	param := in.GetMessage()
+	output := runJob(param)
+	return &pb.JobOutput{Output: output}, nil
+}
+
 func main() {
 	flag.Parse()
 
-	// Set up a connection to the server
-	conn, err := grpc.Dial(*controllerAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {
-		log.Fatalf("Did not connect: %v", err)
-	}
-	defer conn.Close()
-	c := pb.NewControllerClient(conn)
-
-	// Get the parameters
-	ctxGet, cancelGet := context.WithTimeout(context.Background(), time.Second)
-	defer cancelGet()
-
-	r, err := c.GetParams(ctxGet, &emptypb.Empty{})
-	if err != nil {
-		log.Fatalf("Failed to get params: %v", err)
+		log.Fatalf("Failed to listen: %v", err)
 	}
 
-	// Do the job
-	jobOutput := runJob(r.GetMessage())
-
-	// Send the output
-	ctxSet, cancelSet := context.WithTimeout(context.Background(), time.Second)
-	defer cancelSet()
-
-	_, err = c.SetOutput(ctxSet, &pb.JobOutput{Id: r.GetId(), Output: jobOutput})
-	if err != nil {
-		log.Fatalf("Failed to send: %v", err)
+	s := grpc.NewServer()
+	pb.RegisterWorkerServer(s, &server{})
+	log.Printf("Server listening at %v", lis.Addr())
+	if err := s.Serve(lis); err != nil {
+		log.Fatalf("Failed to serve: %v", err)
 	}
 }

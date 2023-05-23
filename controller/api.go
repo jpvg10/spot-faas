@@ -1,11 +1,18 @@
 package main
 
 import (
+	"context"
+	"log"
 	"net/http"
 	"sync"
+	"time"
+
+	pb "thesis/proto"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 var jobs = []Job{}
@@ -25,11 +32,27 @@ func postMessage(c *gin.Context) {
 	jobs = append(jobs, newJob)
 	mu.Unlock()
 
+	ip := "localhost"
 	if !*local {
-		go createVM("spot")
+		ip = createVM("spot")
 	}
 
-	c.IndentedJSON(http.StatusCreated, newJob)
+	conn, err := grpc.Dial(ip, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("Did not connect: %v", err)
+	}
+	defer conn.Close()
+	client := pb.NewWorkerClient(conn)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	r, err := client.RunJob(ctx, &pb.JobParameters{Message: newJob.Message})
+	if err != nil {
+		log.Fatalf("Failed to get params: %v", err)
+	}
+
+	c.IndentedJSON(http.StatusOK, r.Output)
 }
 
 func getMessage(c *gin.Context) {

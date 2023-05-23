@@ -11,7 +11,6 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -19,122 +18,86 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// ControllerClient is the client API for Controller service.
+// WorkerClient is the client API for Worker service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type ControllerClient interface {
-	GetParams(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*JobParameters, error)
-	SetOutput(ctx context.Context, in *JobOutput, opts ...grpc.CallOption) (*emptypb.Empty, error)
+type WorkerClient interface {
+	RunJob(ctx context.Context, in *JobParameters, opts ...grpc.CallOption) (*JobOutput, error)
 }
 
-type controllerClient struct {
+type workerClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewControllerClient(cc grpc.ClientConnInterface) ControllerClient {
-	return &controllerClient{cc}
+func NewWorkerClient(cc grpc.ClientConnInterface) WorkerClient {
+	return &workerClient{cc}
 }
 
-func (c *controllerClient) GetParams(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*JobParameters, error) {
-	out := new(JobParameters)
-	err := c.cc.Invoke(ctx, "/controller.Controller/GetParams", in, out, opts...)
+func (c *workerClient) RunJob(ctx context.Context, in *JobParameters, opts ...grpc.CallOption) (*JobOutput, error) {
+	out := new(JobOutput)
+	err := c.cc.Invoke(ctx, "/worker.Worker/RunJob", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *controllerClient) SetOutput(ctx context.Context, in *JobOutput, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/controller.Controller/SetOutput", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// ControllerServer is the server API for Controller service.
-// All implementations must embed UnimplementedControllerServer
+// WorkerServer is the server API for Worker service.
+// All implementations must embed UnimplementedWorkerServer
 // for forward compatibility
-type ControllerServer interface {
-	GetParams(context.Context, *emptypb.Empty) (*JobParameters, error)
-	SetOutput(context.Context, *JobOutput) (*emptypb.Empty, error)
-	mustEmbedUnimplementedControllerServer()
+type WorkerServer interface {
+	RunJob(context.Context, *JobParameters) (*JobOutput, error)
+	mustEmbedUnimplementedWorkerServer()
 }
 
-// UnimplementedControllerServer must be embedded to have forward compatible implementations.
-type UnimplementedControllerServer struct {
+// UnimplementedWorkerServer must be embedded to have forward compatible implementations.
+type UnimplementedWorkerServer struct {
 }
 
-func (UnimplementedControllerServer) GetParams(context.Context, *emptypb.Empty) (*JobParameters, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetParams not implemented")
+func (UnimplementedWorkerServer) RunJob(context.Context, *JobParameters) (*JobOutput, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RunJob not implemented")
 }
-func (UnimplementedControllerServer) SetOutput(context.Context, *JobOutput) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SetOutput not implemented")
-}
-func (UnimplementedControllerServer) mustEmbedUnimplementedControllerServer() {}
+func (UnimplementedWorkerServer) mustEmbedUnimplementedWorkerServer() {}
 
-// UnsafeControllerServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to ControllerServer will
+// UnsafeWorkerServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to WorkerServer will
 // result in compilation errors.
-type UnsafeControllerServer interface {
-	mustEmbedUnimplementedControllerServer()
+type UnsafeWorkerServer interface {
+	mustEmbedUnimplementedWorkerServer()
 }
 
-func RegisterControllerServer(s grpc.ServiceRegistrar, srv ControllerServer) {
-	s.RegisterService(&Controller_ServiceDesc, srv)
+func RegisterWorkerServer(s grpc.ServiceRegistrar, srv WorkerServer) {
+	s.RegisterService(&Worker_ServiceDesc, srv)
 }
 
-func _Controller_GetParams_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
+func _Worker_RunJob_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(JobParameters)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ControllerServer).GetParams(ctx, in)
+		return srv.(WorkerServer).RunJob(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/controller.Controller/GetParams",
+		FullMethod: "/worker.Worker/RunJob",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ControllerServer).GetParams(ctx, req.(*emptypb.Empty))
+		return srv.(WorkerServer).RunJob(ctx, req.(*JobParameters))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Controller_SetOutput_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(JobOutput)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ControllerServer).SetOutput(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/controller.Controller/SetOutput",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ControllerServer).SetOutput(ctx, req.(*JobOutput))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-// Controller_ServiceDesc is the grpc.ServiceDesc for Controller service.
+// Worker_ServiceDesc is the grpc.ServiceDesc for Worker service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var Controller_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "controller.Controller",
-	HandlerType: (*ControllerServer)(nil),
+var Worker_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "worker.Worker",
+	HandlerType: (*WorkerServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetParams",
-			Handler:    _Controller_GetParams_Handler,
-		},
-		{
-			MethodName: "SetOutput",
-			Handler:    _Controller_SetOutput_Handler,
+			MethodName: "RunJob",
+			Handler:    _Worker_RunJob_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
