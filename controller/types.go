@@ -18,3 +18,9 @@ type Job struct {
 	Status  StatusType `json:"status"`
 	Output  string     `json:"output,omitempty"`
 }
+
+type CreateResponse []struct {
+	NetworkInterfaces []struct {
+		NetworkIP string `json:"networkIP"`
+	} `json:"networkInterfaces"`
+}

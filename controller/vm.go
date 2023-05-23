@@ -2,12 +2,13 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"log"
 	"os/exec"
 )
 
-func createVM(name string) {
-	run("gcloud",
+func createVM(name string) string {
+	output := run("gcloud",
 		"compute",
 		"instances",
 		"create",
@@ -18,6 +19,17 @@ func createVM(name string) {
 		"--image-project=ubuntu-os-cloud",
 		"--format=json",
 	)
+
+	var data CreateResponse
+	err := json.Unmarshal([]byte(output), &data)
+	if err != nil {
+		log.Printf("Could not unmarshal json: %s\n", err)
+		return ""
+	}
+
+	log.Println(data[0].NetworkInterfaces[0].NetworkIP)
+
+	return data[0].NetworkInterfaces[0].NetworkIP
 }
 
 func deleteVM(name string) {
@@ -44,6 +56,6 @@ func run(command string, args ...string) string {
 		log.Fatal(err)
 	}
 
-	log.Printf("Command output: %s\n", cmdOut.String())
+	// log.Printf("Command output: %s\n", cmdOut.String())
 	return cmdOut.String()
 }
