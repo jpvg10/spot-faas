@@ -27,8 +27,6 @@ func createVM(name string) string {
 		return ""
 	}
 
-	log.Println(data[0].NetworkInterfaces[0].NetworkIP)
-
 	return data[0].NetworkInterfaces[0].NetworkIP
 }
 

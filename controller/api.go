@@ -47,13 +47,3 @@ func getMessage(c *gin.Context) {
 
 	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Not found"})
 }
-
-func runApi() {
-	router := gin.Default()
-	router.GET("/message/:id", getMessage)
-	router.POST("/message", postMessage)
-
-	webAddress := "localhost:" + *webPort
-
-	router.Run(webAddress)
-}

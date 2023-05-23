@@ -1,28 +1,17 @@
 package main
 
 import (
-	"context"
 	"flag"
-	"fmt"
-	"log"
-	"net"
 
-	pb "thesis/proto"
-
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/peer"
-	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/emptypb"
+	"github.com/gin-gonic/gin"
 )
 
 var (
-	grpcPort = flag.Int("grpc-port", 50051, "The port for the gRPC server")
-	webPort  = flag.String("web-port", "8080", "The port for the web server")
-	local    = flag.Bool("local", true, "Use local or cloud worker")
+	webPort = flag.String("port", "8080", "The port for the web server")
+	local   = flag.Bool("local", true, "Use local or cloud worker")
 )
 
-type server struct {
+/* type server struct {
 	pb.UnimplementedControllerServer
 }
 
@@ -63,9 +52,19 @@ func (s *server) SetOutput(ctx context.Context, in *pb.JobOutput) (*emptypb.Empt
 
 	return &emptypb.Empty{}, nil
 }
-
+*/
 func main() {
 	flag.Parse()
+
+	router := gin.Default()
+	router.GET("/message/:id", getMessage)
+	router.POST("/message", postMessage)
+
+	webAddress := "localhost:" + *webPort
+
+	router.Run(webAddress)
+
+	/* flag.Parse()
 
 	go runApi()
 
@@ -79,5 +78,5 @@ func main() {
 	log.Printf("Server listening at %v", lis.Addr())
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("Failed to serve: %v", err)
-	}
+	} */
 }
