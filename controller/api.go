@@ -18,6 +18,10 @@ import (
 var jobs = []Job{}
 var mu sync.Mutex
 
+const (
+	grpcPort = "50051"
+)
+
 func postMessage(c *gin.Context) {
 	var newMessage Payload
 
@@ -57,6 +61,10 @@ func postMessage(c *gin.Context) {
 	r, err := client.RunJob(ctx, &pb.JobParameters{Message: newJob.Message})
 	if err != nil {
 		log.Fatalf("Failed to get params: %v", err)
+	}
+
+	if !*local {
+		go deleteVM("spot")
 	}
 
 	c.IndentedJSON(http.StatusOK, r.Output)
