@@ -44,14 +44,11 @@ func runJob(param string) string {
 		log.Fatal(err)
 	}
 
-	// log.Printf("Container output: %s\n", cmdOut.String())
+	log.Printf("Container output: %s\n", cmdOut.String())
 	return cmdOut.String()
 }
 
 func (s *server) RunJob(ctx context.Context, in *pb.JobParameters) (*pb.JobOutput, error) {
-	// p, _ := peer.FromContext(ctx)
-	// log.Printf("Received request from: %v", p.Addr)
-
 	param := in.GetMessage()
 	output := runJob(param)
 	return &pb.JobOutput{Output: output}, nil
