@@ -6,8 +6,8 @@ import (
 	"os/exec"
 )
 
-func createVM(name string) string {
-	return run("gcloud",
+func createVM(name string) {
+	run("gcloud",
 		"compute",
 		"instances",
 		"create",

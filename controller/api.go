@@ -8,29 +8,26 @@ import (
 	"github.com/google/uuid"
 )
 
-var jobs = []job{}
+var jobs = []Job{}
 var mu sync.Mutex
 
-func getMessages(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, jobs)
-}
-
 func postMessage(c *gin.Context) {
-	var newMessage payload
+	var newMessage Payload
 
 	if err := c.BindJSON(&newMessage); err != nil {
 		return
 	}
 
 	id := uuid.New()
-
-	newJob := job{Id: id.String(), Message: newMessage.Message, Status: Pending}
+	newJob := Job{Id: id.String(), Message: newMessage.Message, Status: Pending}
 
 	mu.Lock()
 	jobs = append(jobs, newJob)
 	mu.Unlock()
 
-	go createVM("spot")
+	if !*local {
+		go createVM("spot")
+	}
 
 	c.IndentedJSON(http.StatusCreated, newJob)
 }
@@ -53,9 +50,10 @@ func getMessage(c *gin.Context) {
 
 func runApi() {
 	router := gin.Default()
-	router.GET("/messages", getMessages)
 	router.GET("/message/:id", getMessage)
 	router.POST("/message", postMessage)
 
-	router.Run("localhost:8080")
+	webAddress := "localhost:" + *webPort
+
+	router.Run(webAddress)
 }

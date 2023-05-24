@@ -49,7 +49,7 @@ func runJob(param string) string {
 func main() {
 	flag.Parse()
 
-	// Set up a connection to the server.
+	// Set up a connection to the server
 	conn, err := grpc.Dial(*controllerAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("Did not connect: %v", err)
@@ -57,11 +57,11 @@ func main() {
 	defer conn.Close()
 	c := pb.NewControllerClient(conn)
 
-	// Contact the server and print out its response.
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
+	// Get the parameters
+	ctxGet, cancelGet := context.WithTimeout(context.Background(), time.Second)
+	defer cancelGet()
 
-	r, err := c.GetParams(ctx, &emptypb.Empty{})
+	r, err := c.GetParams(ctxGet, &emptypb.Empty{})
 	if err != nil {
 		log.Fatalf("Failed to get params: %v", err)
 	}
@@ -70,11 +70,11 @@ func main() {
 	jobOutput := runJob(r.GetMessage())
 
 	// Send the output
-	ctx, cancel = context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
+	ctxSet, cancelSet := context.WithTimeout(context.Background(), time.Second)
+	defer cancelSet()
 
-	_, err = c.SetOutput(ctx, &pb.JobOutput{Id: r.GetId(), Output: jobOutput})
+	_, err = c.SetOutput(ctxSet, &pb.JobOutput{Id: r.GetId(), Output: jobOutput})
 	if err != nil {
-		log.Fatal("Failed to send", err)
+		log.Fatalf("Failed to send: %v", err)
 	}
 }

@@ -1,6 +1,6 @@
 package main
 
-type payload struct {
+type Payload struct {
 	Message string `json:"message"`
 }
 
@@ -12,7 +12,7 @@ const (
 	Completed  StatusType = "completed"
 )
 
-type job struct {
+type Job struct {
 	Id      string     `json:"id"`
 	Message string     `json:"message"`
 	Status  StatusType `json:"status"`

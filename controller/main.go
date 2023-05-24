@@ -17,7 +17,9 @@ import (
 )
 
 var (
-	port = flag.Int("port", 50051, "The server port")
+	grpcPort = flag.Int("grpc-port", 50051, "The port for the gRPC server")
+	webPort  = flag.String("web-port", "8080", "The port for the web server")
+	local    = flag.Bool("local", true, "Use local or cloud worker")
 )
 
 type server struct {
@@ -55,17 +57,19 @@ func (s *server) SetOutput(ctx context.Context, in *pb.JobOutput) (*emptypb.Empt
 		}
 	}
 
-	go deleteVM("spot")
+	if !*local {
+		go deleteVM("spot")
+	}
 
 	return &emptypb.Empty{}, nil
 }
 
 func main() {
-	go runApi()
-
 	flag.Parse()
 
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
+	go runApi()
+
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *grpcPort))
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)
 	}
