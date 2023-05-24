@@ -14,6 +14,8 @@ func createVM(name string) {
 		name,
 		"--provisioning-model=SPOT",
 		"--instance-termination-action=DELETE",
+		"--image-family=ubuntu-minimal-2204-lts",
+		"--image-project=ubuntu-os-cloud",
 		"--format=json",
 	)
 }
