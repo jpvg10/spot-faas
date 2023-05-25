@@ -110,3 +110,7 @@ func getMessage(c *gin.Context) {
 
 	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Not found"})
 }
+
+func pingApi(c *gin.Context) {
+	c.Data(http.StatusOK, gin.MIMEHTML, []byte("API running.\n"))
+}

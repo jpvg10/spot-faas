@@ -15,6 +15,7 @@ func main() {
 	flag.Parse()
 
 	router := gin.Default()
+	router.GET("/", pingApi)
 	router.GET("/message/:id", getMessage)
 	router.POST("/message", postMessage)
 
