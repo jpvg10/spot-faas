@@ -39,8 +39,9 @@ func runJobInWorker(job Job) {
 	if *local {
 		ip = "localhost"
 	} else {
+		log.Printf("Creating spot VM: %v", spotName)
 		ip = createVM(spotName)
-		log.Println(ip)
+		log.Printf("Spot VM %v created. The IP is: %v", spotName, ip)
 	}
 
 	ip = ip + ":" + grpcPort
@@ -59,6 +60,8 @@ func runJobInWorker(job Job) {
 	jobs[index].Status = InProgress
 	mu.Unlock()
 
+	log.Printf("Launching job on spot VM")
+
 	r, err := client.RunJob(ctx, &pb.JobParameters{Id: job.Id, Message: job.Message})
 	if err != nil {
 		log.Fatalf("Failed to run job: %v", err)
@@ -72,7 +75,9 @@ func runJobInWorker(job Job) {
 	mu.Unlock()
 
 	if !*local {
+		log.Printf("Deleting spot VM: %v", spotName)
 		deleteVM(spotName)
+		log.Printf("Deleted spot VM: %v", spotName)
 	}
 }
 
