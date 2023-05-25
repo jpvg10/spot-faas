@@ -22,6 +22,59 @@ const (
 	grpcPort = "50051"
 )
 
+func runJobInWorker(job Job) {
+	var index int
+	mu.Lock()
+	for i := range jobs {
+		if jobs[i].Id == job.Id {
+			index = i
+			break
+		}
+	}
+	mu.Unlock()
+
+	var ip string
+
+	if *local {
+		ip = "localhost"
+	} else {
+		ip = createVM("spot")
+		log.Println(ip)
+	}
+
+	ip = ip + ":" + grpcPort
+
+	conn, err := grpc.Dial(ip, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("Did not connect: %v", err)
+	}
+	defer conn.Close()
+	client := pb.NewWorkerClient(conn)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+
+	mu.Lock()
+	jobs[index].Status = InProgress
+	mu.Unlock()
+
+	r, err := client.RunJob(ctx, &pb.JobParameters{Id: job.Id, Message: job.Message})
+	if err != nil {
+		log.Fatalf("Failed to run job: %v", err)
+	}
+
+	log.Printf("Completed job: %v\n", r.GetOutput())
+
+	mu.Lock()
+	jobs[index].Status = Completed
+	jobs[index].Output = r.GetOutput()
+	mu.Unlock()
+
+	if !*local {
+		deleteVM("spot")
+	}
+}
+
 func postMessage(c *gin.Context) {
 	var newMessage Payload
 
@@ -36,38 +89,9 @@ func postMessage(c *gin.Context) {
 	jobs = append(jobs, newJob)
 	mu.Unlock()
 
-	var ip string
+	go runJobInWorker(newJob)
 
-	if *local {
-		ip = "localhost"
-	} else {
-		ip = createVM("spot")
-		log.Println(ip)
-	}
-
-	port := "50051"
-	ip = ip + ":" + port
-
-	conn, err := grpc.Dial(ip, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		log.Fatalf("Did not connect: %v", err)
-	}
-	defer conn.Close()
-	client := pb.NewWorkerClient(conn)
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-
-	r, err := client.RunJob(ctx, &pb.JobParameters{Message: newJob.Message})
-	if err != nil {
-		log.Fatalf("Failed to get params: %v", err)
-	}
-
-	if !*local {
-		go deleteVM("spot")
-	}
-
-	c.IndentedJSON(http.StatusOK, r.Output)
+	c.IndentedJSON(http.StatusOK, newJob)
 }
 
 func getMessage(c *gin.Context) {
