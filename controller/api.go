@@ -33,12 +33,13 @@ func runJobInWorker(job Job) {
 	}
 	mu.Unlock()
 
+	spotName := "spot" + job.Id
 	var ip string
 
 	if *local {
 		ip = "localhost"
 	} else {
-		ip = createVM("spot")
+		ip = createVM(spotName)
 		log.Println(ip)
 	}
 
@@ -71,7 +72,7 @@ func runJobInWorker(job Job) {
 	mu.Unlock()
 
 	if !*local {
-		deleteVM("spot")
+		deleteVM(spotName)
 	}
 }
 
