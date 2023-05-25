@@ -19,7 +19,7 @@ func main() {
 	router.GET("/message/:id", getMessage)
 	router.POST("/message", postMessage)
 
-	webAddress := "localhost:" + *webPort
+	webAddress := ":" + *webPort
 
 	router.Run(webAddress)
 }
