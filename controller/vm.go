@@ -13,6 +13,7 @@ func createVM(name string) string {
 		"instances",
 		"create",
 		name,
+		"--zone=europe-north1-c",
 		"--provisioning-model=SPOT",
 		"--instance-termination-action=DELETE",
 		"--image-family=ubuntu-minimal-2204-lts",
@@ -36,6 +37,8 @@ func deleteVM(name string) {
 		"instances",
 		"delete",
 		name,
+		"--zone=europe-north1-c",
+		"--quiet",
 	)
 }
 
