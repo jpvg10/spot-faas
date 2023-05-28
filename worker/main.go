@@ -15,7 +15,8 @@ import (
 )
 
 var (
-	port = flag.Int("port", 50051, "The gRPC server port")
+	port  = flag.Int("port", 50051, "The gRPC server port")
+	image = flag.String("image", "jpvalencia/worker", "The Docker image to run")
 )
 
 type server struct {
@@ -28,7 +29,7 @@ func runJob(param string) string {
 	if len(param) > 0 {
 		dockerCommand = append(dockerCommand, "-e", fmt.Sprintf("MESSAGE=%v", param))
 	}
-	dockerCommand = append(dockerCommand, "worker")
+	dockerCommand = append(dockerCommand, *image)
 
 	cmd := exec.Command("docker", dockerCommand...)
 
