@@ -18,6 +18,12 @@ func createVM(name string) string {
 		"--instance-termination-action=DELETE",
 		"--image-family=ubuntu-minimal-2204-lts",
 		"--image-project=ubuntu-os-cloud",
+		"--scopes=storage-ro",
+		`--metadata=startup-script=#! /bin/bash
+		mkdir /program
+		gcloud storage cp gs://spot-thesis-files-2994/worker /program/worker
+		chmod +x /program/worker
+		/program/worker >> /program/log 2>&1`,
 		"--format=json",
 	)
 
