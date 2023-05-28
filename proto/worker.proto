@@ -1,10 +1,12 @@
 syntax = "proto3";
 
-option go_package = "thesis/proto";
+import "google/protobuf/empty.proto";
 
+option go_package = "thesis/proto";
 package worker;
 
 service Worker {
+  rpc Ping(google.protobuf.Empty) returns (google.protobuf.Empty) {}
   rpc RunJob(JobParameters) returns (JobOutput) {}
 }
 

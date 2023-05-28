@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             v3.15.8
-// source: controller.proto
+// source: worker.proto
 
 package proto
 
@@ -11,6 +11,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -22,6 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type WorkerClient interface {
+	Ping(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	RunJob(ctx context.Context, in *JobParameters, opts ...grpc.CallOption) (*JobOutput, error)
 }
 
@@ -31,6 +33,15 @@ type workerClient struct {
 
 func NewWorkerClient(cc grpc.ClientConnInterface) WorkerClient {
 	return &workerClient{cc}
+}
+
+func (c *workerClient) Ping(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/worker.Worker/Ping", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *workerClient) RunJob(ctx context.Context, in *JobParameters, opts ...grpc.CallOption) (*JobOutput, error) {
@@ -46,6 +57,7 @@ func (c *workerClient) RunJob(ctx context.Context, in *JobParameters, opts ...gr
 // All implementations must embed UnimplementedWorkerServer
 // for forward compatibility
 type WorkerServer interface {
+	Ping(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
 	RunJob(context.Context, *JobParameters) (*JobOutput, error)
 	mustEmbedUnimplementedWorkerServer()
 }
@@ -54,6 +66,9 @@ type WorkerServer interface {
 type UnimplementedWorkerServer struct {
 }
 
+func (UnimplementedWorkerServer) Ping(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
+}
 func (UnimplementedWorkerServer) RunJob(context.Context, *JobParameters) (*JobOutput, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RunJob not implemented")
 }
@@ -68,6 +83,24 @@ type UnsafeWorkerServer interface {
 
 func RegisterWorkerServer(s grpc.ServiceRegistrar, srv WorkerServer) {
 	s.RegisterService(&Worker_ServiceDesc, srv)
+}
+
+func _Worker_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkerServer).Ping(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/worker.Worker/Ping",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkerServer).Ping(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _Worker_RunJob_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -96,10 +129,14 @@ var Worker_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*WorkerServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
+			MethodName: "Ping",
+			Handler:    _Worker_Ping_Handler,
+		},
+		{
 			MethodName: "RunJob",
 			Handler:    _Worker_RunJob_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "controller.proto",
+	Metadata: "worker.proto",
 }
