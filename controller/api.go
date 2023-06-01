@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 var jobs = []Job{}
@@ -53,14 +54,29 @@ func runJobInWorker(job Job) {
 	defer conn.Close()
 	client := pb.NewWorkerClient(conn)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-	defer cancel()
-
 	mu.Lock()
 	jobs[index].Status = InProgress
 	mu.Unlock()
 
+	for i := 0; ; i++ {
+		time.Sleep(time.Second)
+		log.Printf("Attempting to contact the worker: %v", i)
+
+		ctxPing, cancelPing := context.WithTimeout(context.Background(), time.Second)
+		defer cancelPing()
+
+		_, err := client.Ping(ctxPing, &emptypb.Empty{})
+		if err == nil {
+			break
+		} else if i > 30 {
+			log.Fatalln("Failed to contact the worker in 30s")
+		}
+	}
+
 	log.Printf("Launching job on spot VM")
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
 
 	r, err := client.RunJob(ctx, &pb.JobParameters{Id: job.Id, Message: job.Message})
 	if err != nil {

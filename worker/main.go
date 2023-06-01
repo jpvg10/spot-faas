@@ -12,6 +12,7 @@ import (
 	pb "thesis/proto"
 
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 var (
@@ -53,6 +54,10 @@ func (s *server) RunJob(ctx context.Context, in *pb.JobParameters) (*pb.JobOutpu
 	param := in.GetMessage()
 	output := runJob(param)
 	return &pb.JobOutput{Output: output}, nil
+}
+
+func (s *server) Ping(ctx context.Context, in *emptypb.Empty) (*emptypb.Empty, error) {
+	return &emptypb.Empty{}, nil
 }
 
 func main() {
