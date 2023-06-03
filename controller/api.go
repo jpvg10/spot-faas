@@ -60,7 +60,9 @@ func runJobInWorker(job Job) {
 
 	for i := 0; ; i++ {
 		time.Sleep(time.Second)
-		log.Printf("Attempting to contact the worker: %v", i)
+		if i%5 == 0 {
+			log.Printf("Attempting to contact the worker: %v", i)
+		}
 
 		ctxPing, cancelPing := context.WithTimeout(context.Background(), time.Second)
 		defer cancelPing()
@@ -68,8 +70,8 @@ func runJobInWorker(job Job) {
 		_, err := client.Ping(ctxPing, &emptypb.Empty{})
 		if err == nil {
 			break
-		} else if i > 30 {
-			log.Fatalln("Failed to contact the worker in 30s")
+		} else if i >= 60 {
+			log.Fatalln("Failed to contact the worker in 1 minute")
 		}
 	}
 
