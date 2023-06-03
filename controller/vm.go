@@ -16,8 +16,8 @@ func createVM(name string) string {
 		"--zone=europe-north1-c",
 		"--provisioning-model=SPOT",
 		"--instance-termination-action=DELETE",
-		"--image-family=ubuntu-minimal-2204-lts",
-		"--image-project=ubuntu-os-cloud",
+		"--image-project=spot-380110",
+		"--image=worker-base-image",
 		"--scopes=storage-ro",
 		`--metadata=startup-script=#! /bin/bash
 		mkdir /program
