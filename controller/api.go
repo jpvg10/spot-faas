@@ -52,7 +52,7 @@ func runJobInWorker(job Job) {
 		log.Fatalf("Did not connect: %v", err)
 	}
 	defer conn.Close()
-	client := pb.NewWorkerClient(conn)
+	client := pb.NewWorkerServiceClient(conn)
 
 	mu.Lock()
 	jobs[index].Status = InProgress
@@ -80,16 +80,16 @@ func runJobInWorker(job Job) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 
-	r, err := client.RunJob(ctx, &pb.JobParameters{Id: job.Id, Message: job.Message})
+	r, err := client.RunJob(ctx, &pb.RunJobRequest{Id: job.Id, Arguments: job.Arguments})
 	if err != nil {
 		log.Fatalf("Failed to run job: %v", err)
 	}
 
-	log.Printf("Completed job: %v\n", r.GetOutput())
+	log.Printf("Completed job: %v\n", r.GetResult())
 
 	mu.Lock()
 	jobs[index].Status = Completed
-	jobs[index].Output = r.GetOutput()
+	jobs[index].Result = r.GetResult()
 	mu.Unlock()
 
 	if !*local {
@@ -99,15 +99,15 @@ func runJobInWorker(job Job) {
 	}
 }
 
-func postMessage(c *gin.Context) {
-	var newMessage Payload
+func postJob(c *gin.Context) {
+	var bodyData Payload
 
-	if err := c.BindJSON(&newMessage); err != nil {
+	if err := c.BindJSON(&bodyData); err != nil {
 		return
 	}
 
 	id := uuid.New()
-	newJob := Job{Id: id.String(), Message: newMessage.Message, Status: Pending}
+	newJob := Job{Id: id.String(), Arguments: bodyData.Message, Status: Pending}
 
 	mu.Lock()
 	jobs = append(jobs, newJob)
@@ -118,7 +118,7 @@ func postMessage(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, newJob)
 }
 
-func getMessage(c *gin.Context) {
+func getJob(c *gin.Context) {
 	id := c.Param("id")
 
 	mu.Lock()

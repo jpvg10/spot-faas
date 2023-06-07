@@ -16,8 +16,8 @@ func main() {
 
 	router := gin.Default()
 	router.GET("/", pingApi)
-	router.GET("/message/:id", getMessage)
-	router.POST("/message", postMessage)
+	router.POST("/job", postJob)
+	router.GET("/job/:id", getJob)
 
 	webAddress := ":" + *webPort
 

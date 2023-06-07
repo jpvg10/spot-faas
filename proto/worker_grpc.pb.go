@@ -19,122 +19,122 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// WorkerClient is the client API for Worker service.
+// WorkerServiceClient is the client API for WorkerService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type WorkerClient interface {
+type WorkerServiceClient interface {
 	Ping(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	RunJob(ctx context.Context, in *JobParameters, opts ...grpc.CallOption) (*JobOutput, error)
+	RunJob(ctx context.Context, in *RunJobRequest, opts ...grpc.CallOption) (*RunJobResponse, error)
 }
 
-type workerClient struct {
+type workerServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewWorkerClient(cc grpc.ClientConnInterface) WorkerClient {
-	return &workerClient{cc}
+func NewWorkerServiceClient(cc grpc.ClientConnInterface) WorkerServiceClient {
+	return &workerServiceClient{cc}
 }
 
-func (c *workerClient) Ping(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *workerServiceClient) Ping(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/worker.Worker/Ping", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/worker.WorkerService/Ping", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *workerClient) RunJob(ctx context.Context, in *JobParameters, opts ...grpc.CallOption) (*JobOutput, error) {
-	out := new(JobOutput)
-	err := c.cc.Invoke(ctx, "/worker.Worker/RunJob", in, out, opts...)
+func (c *workerServiceClient) RunJob(ctx context.Context, in *RunJobRequest, opts ...grpc.CallOption) (*RunJobResponse, error) {
+	out := new(RunJobResponse)
+	err := c.cc.Invoke(ctx, "/worker.WorkerService/RunJob", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// WorkerServer is the server API for Worker service.
-// All implementations must embed UnimplementedWorkerServer
+// WorkerServiceServer is the server API for WorkerService service.
+// All implementations must embed UnimplementedWorkerServiceServer
 // for forward compatibility
-type WorkerServer interface {
+type WorkerServiceServer interface {
 	Ping(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
-	RunJob(context.Context, *JobParameters) (*JobOutput, error)
-	mustEmbedUnimplementedWorkerServer()
+	RunJob(context.Context, *RunJobRequest) (*RunJobResponse, error)
+	mustEmbedUnimplementedWorkerServiceServer()
 }
 
-// UnimplementedWorkerServer must be embedded to have forward compatible implementations.
-type UnimplementedWorkerServer struct {
+// UnimplementedWorkerServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedWorkerServiceServer struct {
 }
 
-func (UnimplementedWorkerServer) Ping(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
+func (UnimplementedWorkerServiceServer) Ping(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
 }
-func (UnimplementedWorkerServer) RunJob(context.Context, *JobParameters) (*JobOutput, error) {
+func (UnimplementedWorkerServiceServer) RunJob(context.Context, *RunJobRequest) (*RunJobResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RunJob not implemented")
 }
-func (UnimplementedWorkerServer) mustEmbedUnimplementedWorkerServer() {}
+func (UnimplementedWorkerServiceServer) mustEmbedUnimplementedWorkerServiceServer() {}
 
-// UnsafeWorkerServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to WorkerServer will
+// UnsafeWorkerServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to WorkerServiceServer will
 // result in compilation errors.
-type UnsafeWorkerServer interface {
-	mustEmbedUnimplementedWorkerServer()
+type UnsafeWorkerServiceServer interface {
+	mustEmbedUnimplementedWorkerServiceServer()
 }
 
-func RegisterWorkerServer(s grpc.ServiceRegistrar, srv WorkerServer) {
-	s.RegisterService(&Worker_ServiceDesc, srv)
+func RegisterWorkerServiceServer(s grpc.ServiceRegistrar, srv WorkerServiceServer) {
+	s.RegisterService(&WorkerService_ServiceDesc, srv)
 }
 
-func _Worker_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _WorkerService_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(WorkerServer).Ping(ctx, in)
+		return srv.(WorkerServiceServer).Ping(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/worker.Worker/Ping",
+		FullMethod: "/worker.WorkerService/Ping",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(WorkerServer).Ping(ctx, req.(*emptypb.Empty))
+		return srv.(WorkerServiceServer).Ping(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Worker_RunJob_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(JobParameters)
+func _WorkerService_RunJob_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RunJobRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(WorkerServer).RunJob(ctx, in)
+		return srv.(WorkerServiceServer).RunJob(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/worker.Worker/RunJob",
+		FullMethod: "/worker.WorkerService/RunJob",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(WorkerServer).RunJob(ctx, req.(*JobParameters))
+		return srv.(WorkerServiceServer).RunJob(ctx, req.(*RunJobRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// Worker_ServiceDesc is the grpc.ServiceDesc for Worker service.
+// WorkerService_ServiceDesc is the grpc.ServiceDesc for WorkerService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var Worker_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "worker.Worker",
-	HandlerType: (*WorkerServer)(nil),
+var WorkerService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "worker.WorkerService",
+	HandlerType: (*WorkerServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Ping",
-			Handler:    _Worker_Ping_Handler,
+			Handler:    _WorkerService_Ping_Handler,
 		},
 		{
 			MethodName: "RunJob",
-			Handler:    _Worker_RunJob_Handler,
+			Handler:    _WorkerService_RunJob_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

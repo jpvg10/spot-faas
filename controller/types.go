@@ -13,10 +13,10 @@ const (
 )
 
 type Job struct {
-	Id      string     `json:"id"`
-	Message string     `json:"message"`
-	Status  StatusType `json:"status"`
-	Output  string     `json:"output,omitempty"`
+	Id        string     `json:"id"`
+	Arguments string     `json:"arguments"`
+	Status    StatusType `json:"status"`
+	Result    string     `json:"result,omitempty"`
 }
 
 type CreateResponse []struct {

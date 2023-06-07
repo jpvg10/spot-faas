@@ -21,14 +21,14 @@ var (
 )
 
 type server struct {
-	pb.UnimplementedWorkerServer
+	pb.UnimplementedWorkerServiceServer
 }
 
-func runJob(param string) string {
+func runJob(args string) string {
 	dockerCommand := []string{"run"}
 
-	if len(param) > 0 {
-		dockerCommand = append(dockerCommand, "-e", fmt.Sprintf("MESSAGE=%v", param))
+	if len(args) > 0 {
+		dockerCommand = append(dockerCommand, "-e", fmt.Sprintf("MESSAGE=%v", args))
 	}
 	dockerCommand = append(dockerCommand, *image)
 
@@ -50,10 +50,10 @@ func runJob(param string) string {
 	return cmdOut.String()
 }
 
-func (s *server) RunJob(ctx context.Context, in *pb.JobParameters) (*pb.JobOutput, error) {
-	param := in.GetMessage()
-	output := runJob(param)
-	return &pb.JobOutput{Output: output}, nil
+func (s *server) RunJob(ctx context.Context, in *pb.RunJobRequest) (*pb.RunJobResponse, error) {
+	args := in.GetArguments()
+	result := runJob(args)
+	return &pb.RunJobResponse{Result: result}, nil
 }
 
 func (s *server) Ping(ctx context.Context, in *emptypb.Empty) (*emptypb.Empty, error) {
@@ -69,7 +69,7 @@ func main() {
 	}
 
 	s := grpc.NewServer()
-	pb.RegisterWorkerServer(s, &server{})
+	pb.RegisterWorkerServiceServer(s, &server{})
 	log.Printf("Server listening at %v", lis.Addr())
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("Failed to serve: %v", err)
