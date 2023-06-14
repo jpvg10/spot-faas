@@ -28,7 +28,7 @@ func runJob(args string) string {
 	dockerCommand := []string{"run"}
 
 	if len(args) > 0 {
-		dockerCommand = append(dockerCommand, "-e", fmt.Sprintf("MESSAGE=%v", args))
+		dockerCommand = append(dockerCommand, "-e", fmt.Sprintf("FN_ARGS=%v", args))
 	}
 	dockerCommand = append(dockerCommand, *image)
 
