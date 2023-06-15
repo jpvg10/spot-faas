@@ -1,9 +1,5 @@
 package main
 
-type Payload struct {
-	Message string `json:"message"`
-}
-
 type StatusType string
 
 const (
@@ -17,7 +13,7 @@ type Job struct {
 	Id        string     `json:"id"`
 	Arguments string     `json:"-"`
 	Status    StatusType `json:"status"`
-	Result    string     `json:"result,omitempty"`
+	Result    any        `json:"result,omitempty"`
 	Error     string     `json:"error,omitempty"`
 }
 

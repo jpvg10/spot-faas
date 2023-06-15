@@ -10,3 +10,9 @@ build-proto:
 
 clean:
 	rm -rf bin/*
+
+run-controller:
+	go run controller/*.go
+
+run-worker:
+	go run worker/*.go

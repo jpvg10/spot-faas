@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"sync"
@@ -85,11 +87,21 @@ func runJobInWorker(job Job) {
 		log.Fatalf("Failed to run job: %v", err)
 	}
 
-	log.Printf("Completed job: %v\n", r.GetResult())
+	resultString := r.GetResult()
+	log.Printf("Completed job: %v\n", resultString)
+
+	var resultJson map[string]interface{}
+	unmarshalErr := json.Unmarshal([]byte(resultString), &resultJson)
 
 	mu.Lock()
 	jobs[index].Status = Completed
-	jobs[index].Result = r.GetResult()
+	if unmarshalErr != nil {
+		log.Printf("Result string")
+		jobs[index].Result = r.GetResult()
+	} else {
+		log.Printf("Result JSON")
+		jobs[index].Result = resultJson
+	}
 	mu.Unlock()
 
 	if !*local {
@@ -100,14 +112,16 @@ func runJobInWorker(job Job) {
 }
 
 func postJob(c *gin.Context) {
-	var bodyData Payload
-
-	if err := c.BindJSON(&bodyData); err != nil {
-		return
+	var args string
+	jsonData, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		args = ""
+	} else {
+		args = string(jsonData)
 	}
 
 	id := uuid.New()
-	newJob := Job{Id: id.String(), Arguments: bodyData.Message, Status: Pending}
+	newJob := Job{Id: id.String(), Arguments: args, Status: Pending}
 
 	mu.Lock()
 	jobs = append(jobs, newJob)
