@@ -7,7 +7,10 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 	"os/exec"
+	"os/signal"
+	"syscall"
 
 	pb "thesis/proto"
 
@@ -24,7 +27,7 @@ type server struct {
 	pb.UnimplementedWorkerServiceServer
 }
 
-func runJob(args string) string {
+func runJob(args string, resultChan chan string) {
 	dockerCommand := []string{"run"}
 
 	if len(args) > 0 {
@@ -47,13 +50,27 @@ func runJob(args string) string {
 	}
 
 	log.Printf("Container output: %s\n", cmdOut.String())
-	return cmdOut.String()
+
+	resultChan <- cmdOut.String()
 }
 
 func (s *server) RunJob(ctx context.Context, in *pb.RunJobRequest) (*pb.RunJobResponse, error) {
 	args := in.GetArguments()
-	result := runJob(args)
-	return &pb.RunJobResponse{Result: result}, nil
+
+	resultChan := make(chan string, 1)
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGTERM)
+
+	go runJob(args, resultChan)
+
+	select {
+	case result := <-resultChan:
+		log.Printf("Job completed\n")
+		return &pb.RunJobResponse{Result: result, Status: "completed"}, nil
+	case <-sigChan:
+		log.Printf("Worker interrupted!\n")
+		return &pb.RunJobResponse{Result: "", Status: "failed"}, nil
+	}
 }
 
 func (s *server) Ping(ctx context.Context, in *emptypb.Empty) (*emptypb.Empty, error) {

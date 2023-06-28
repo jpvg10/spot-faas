@@ -88,18 +88,21 @@ func runJobInWorker(job Job) {
 	}
 
 	resultString := r.GetResult()
-	log.Printf("Completed job: %v\n", resultString)
+	status := r.GetStatus()
+	log.Printf("Job status: %v\n", status)
+	log.Printf("Job result: %v\n", resultString)
 
 	var resultJson map[string]interface{}
 	unmarshalErr := json.Unmarshal([]byte(resultString), &resultJson)
 
 	mu.Lock()
-	jobs[index].Status = Completed
+	jobs[index].Status = StatusType(status)
+
 	if unmarshalErr != nil {
-		log.Printf("Result string")
+		// Result string
 		jobs[index].Result = r.GetResult()
 	} else {
-		log.Printf("Result JSON")
+		// Result JSON
 		jobs[index].Result = resultJson
 	}
 	mu.Unlock()
