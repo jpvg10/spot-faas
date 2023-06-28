@@ -19,11 +19,17 @@ func createVM(name string) string {
 		"--image-project=spot-380110",
 		"--image=worker-base-image",
 		"--scopes=storage-ro",
-		`--metadata=startup-script=#! /bin/bash
+		"--metadata",
+		`startup-script=#! /bin/bash
 		mkdir /program
 		gcloud storage cp gs://spot-thesis-files-2994/worker /program/worker
 		chmod +x /program/worker
-		/program/worker >> /program/log 2>&1`,
+		/program/worker >> /program/log 2>&1
+
+		,shutdown-script=#! /bin/bash
+		pid=$(pidof worker)
+		echo $pid
+		kill -s SIGTERM $pid`,
 		"--format=json",
 	)
 
