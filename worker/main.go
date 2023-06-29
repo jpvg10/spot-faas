@@ -35,6 +35,7 @@ func runJob(args string, resultChan chan string) {
 	if len(args) > 0 {
 		dockerCommand = append(dockerCommand, "-e", fmt.Sprintf("FN_ARGS=%v", args))
 	}
+	dockerCommand = append(dockerCommand, "-e", "TIMEOUT=60000")
 	dockerCommand = append(dockerCommand, *image)
 
 	cmd := exec.Command("docker", dockerCommand...)
@@ -57,6 +58,7 @@ func runJob(args string, resultChan chan string) {
 }
 
 func (s *server) RunJob(ctx context.Context, in *pb.RunJobRequest) (*pb.RunJobResponse, error) {
+	log.Println("Received job request")
 	args := in.GetArguments()
 
 	resultChan := make(chan string, 1)
@@ -64,10 +66,10 @@ func (s *server) RunJob(ctx context.Context, in *pb.RunJobRequest) (*pb.RunJobRe
 
 	select {
 	case result := <-resultChan:
-		log.Printf("Job completed\n")
+		log.Println("Job completed")
 		return &pb.RunJobResponse{Result: result, Status: "completed"}, nil
 	case <-sigChan:
-		log.Printf("Worker interrupted!\n")
+		log.Println("Worker interrupted!")
 		return &pb.RunJobResponse{Result: "", Status: "failed"}, nil
 	}
 }
