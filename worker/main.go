@@ -20,7 +20,7 @@ import (
 
 var (
 	port  = flag.Int("port", 50051, "The gRPC server port")
-	image = flag.String("image", "jpvalencia/worker", "The Docker image to run")
+	image = flag.String("image", "jpvalencia/sum-fn", "The Docker image to run")
 )
 
 type server struct {
