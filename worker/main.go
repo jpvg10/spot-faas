@@ -27,6 +27,8 @@ type server struct {
 	pb.UnimplementedWorkerServiceServer
 }
 
+var sigChan = make(chan os.Signal, 1)
+
 func runJob(args string, resultChan chan string) {
 	dockerCommand := []string{"run"}
 
@@ -58,9 +60,6 @@ func (s *server) RunJob(ctx context.Context, in *pb.RunJobRequest) (*pb.RunJobRe
 	args := in.GetArguments()
 
 	resultChan := make(chan string, 1)
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGTERM)
-
 	go runJob(args, resultChan)
 
 	select {
@@ -79,6 +78,8 @@ func (s *server) Ping(ctx context.Context, in *emptypb.Empty) (*emptypb.Empty, e
 
 func main() {
 	flag.Parse()
+
+	signal.Notify(sigChan, syscall.SIGTERM)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {
