@@ -79,7 +79,7 @@ func runJobInWorker(job Job) {
 
 	log.Printf("Launching job on spot VM")
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Minute)
 	defer cancel()
 
 	r, err := client.RunJob(ctx, &pb.RunJobRequest{Id: job.Id, Arguments: job.Arguments})
