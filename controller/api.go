@@ -36,22 +36,22 @@ func runJobInWorker(job Job) {
 	}
 	mu.Unlock()
 
-	spotName := "spot" + job.Id
+	spotName := "spot-" + job.Id
 	var ip string
 
 	if *local {
 		ip = "localhost"
 	} else {
-		log.Printf("Creating spot VM: %v", spotName)
+		log.Printf("%v - Creating spot VM", spotName)
 		ip = createVM(spotName)
-		log.Printf("Spot VM %v created. The IP is: %v", spotName, ip)
+		log.Printf("%v - Spot VM created. The IP is: %v", spotName, ip)
 	}
 
 	ip = ip + ":" + grpcPort
 
 	conn, err := grpc.Dial(ip, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatalf("Did not connect: %v", err)
+		log.Fatalf("%v - Did not connect: %v", spotName, err)
 	}
 	defer conn.Close()
 	client := pb.NewWorkerServiceClient(conn)
@@ -63,7 +63,7 @@ func runJobInWorker(job Job) {
 	for i := 0; ; i++ {
 		time.Sleep(time.Second)
 		if i%5 == 0 {
-			log.Printf("Attempting to contact the worker: %v", i)
+			log.Printf("%v - Attempting to contact the worker: %v", spotName, i)
 		}
 
 		ctxPing, cancelPing := context.WithTimeout(context.Background(), time.Second)
@@ -73,24 +73,24 @@ func runJobInWorker(job Job) {
 		if err == nil {
 			break
 		} else if i >= 60 {
-			log.Fatalln("Failed to contact the worker in 1 minute")
+			log.Fatalf("%v - Failed to contact the worker in 1 minute", spotName)
 		}
 	}
 
-	log.Printf("Launching job on spot VM")
+	log.Printf("%v - Launching job on spot VM", spotName)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Minute)
 	defer cancel()
 
 	r, err := client.RunJob(ctx, &pb.RunJobRequest{Id: job.Id, Arguments: job.Arguments})
 	if err != nil {
-		log.Fatalf("Failed to run job: %v", err)
+		log.Fatalf("%v - Failed to run job: %v", spotName, err)
 	}
 
 	resultString := r.GetResult()
 	status := r.GetStatus()
-	log.Printf("Job status: %v\n", status)
-	log.Printf("Job result: %v\n", resultString)
+	log.Printf("%v - Job status: %v", spotName, status)
+	log.Printf("%v - Job result: %v", spotName, resultString)
 
 	var resultJson map[string]interface{}
 	unmarshalErr := json.Unmarshal([]byte(resultString), &resultJson)
@@ -108,9 +108,9 @@ func runJobInWorker(job Job) {
 	mu.Unlock()
 
 	if !*local {
-		log.Printf("Deleting spot VM: %v", spotName)
+		log.Printf("%v - Deleting spot VM", spotName)
 		deleteVM(spotName)
-		log.Printf("Deleted spot VM: %v", spotName)
+		log.Printf("%v - Deleted spot VM", spotName)
 	}
 }
 
