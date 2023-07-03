@@ -19,6 +19,7 @@ func createVM(name string) string {
 		"--image-project=spot-380110",
 		"--image=worker-base-image",
 		"--scopes=storage-ro",
+		"--machine-type=e2-standard-2",
 		"--metadata",
 		`startup-script=#! /bin/bash
 		mkdir /program
@@ -28,7 +29,6 @@ func createVM(name string) string {
 
 		,shutdown-script=#! /bin/bash
 		pid=$(pidof worker)
-		echo $pid
 		kill -s SIGTERM $pid`,
 		"--format=json",
 	)
