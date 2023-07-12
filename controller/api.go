@@ -56,10 +56,6 @@ func runJobInWorker(job Job) {
 	defer conn.Close()
 	client := pb.NewWorkerServiceClient(conn)
 
-	mu.Lock()
-	jobs[index].Status = InProgress
-	mu.Unlock()
-
 	for i := 0; ; i++ {
 		time.Sleep(time.Second)
 		if i%5 == 0 {
@@ -78,6 +74,10 @@ func runJobInWorker(job Job) {
 	}
 
 	log.Printf("%v - Launching job on spot VM", spotName)
+
+	mu.Lock()
+	jobs[index].Status = InProgress
+	mu.Unlock()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Minute)
 	defer cancel()
