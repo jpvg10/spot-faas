@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"log"
 	"os/exec"
 )
@@ -65,15 +64,12 @@ func run(command string, args ...string) (string, error) {
 	cmd := exec.Command(command, args...)
 
 	var cmdOut bytes.Buffer
-	var cmdErr bytes.Buffer
 	cmd.Stdout = &cmdOut
-	cmd.Stderr = &cmdErr
 
 	err := cmd.Run()
 
 	if err != nil {
-		log.Printf("Command execution failed:\n%s", cmdErr.String())
-		return "", errors.New(cmdErr.String())
+		return "", err
 	}
 
 	// log.Printf("Command output: %s", cmdOut.String())

@@ -42,15 +42,11 @@ func runJob(args string, resultChan chan string, errorChan chan string) {
 	cmd := exec.Command("docker", dockerCommand...)
 
 	var cmdOut bytes.Buffer
-	var cmdErr bytes.Buffer
 	cmd.Stdout = &cmdOut
-	cmd.Stderr = &cmdErr
 
 	err := cmd.Run()
-
 	if err != nil {
-		log.Print(cmdErr.String())
-		errorChan <- cmdErr.String()
+		errorChan <- err.Error()
 		return
 	}
 
@@ -79,6 +75,7 @@ func (s *server) RunJob(ctx context.Context, in *pb.RunJobRequest) (*pb.RunJobRe
 		return &pb.RunJobResponse{Result: result, Status: "completed"}, nil
 	case err := <-errorChan:
 		log.Printf("Job execution failed")
+		log.Print(err)
 		return &pb.RunJobResponse{Error: err, Status: "failed"}, nil
 	case <-sigChan:
 		log.Printf("Worker interrupted!")

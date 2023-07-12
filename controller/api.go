@@ -52,6 +52,7 @@ func runJobInWorker(job Job) {
 		log.Printf("%v - Creating spot VM", spotName)
 		ip, createErr := createVM(spotName)
 		if createErr != nil {
+			log.Printf("%v - Failed to create the spot VM: %v", spotName, createErr)
 			setError(index, createErr.Error())
 			return
 		}
@@ -97,9 +98,9 @@ func runJobInWorker(job Job) {
 	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Minute)
 	defer cancel()
 
-	r, runErr := client.RunJob(ctx, &pb.RunJobRequest{Id: job.Id, Arguments: job.Arguments})
+	r, runErr := client.RunJob(ctx, &pb.RunJobRequest{Id: job.Id, Arguments: job.Arguments}) // fix
 	if runErr != nil {
-		log.Fatalf("%v - Failed to run job: %v", spotName, runErr)
+		log.Fatalf("%v - Failed to run job: %v", spotName, runErr) // fix
 		setError(index, runErr.Error())
 		return
 	}
