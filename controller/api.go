@@ -25,6 +25,13 @@ const (
 	grpcPort = "50051"
 )
 
+func setError(index int, message string) {
+	mu.Lock()
+	jobs[index].Status = "failed"
+	jobs[index].Error = message
+	mu.Unlock()
+}
+
 func runJobInWorker(job Job) {
 	var index int
 	mu.Lock()
@@ -43,15 +50,21 @@ func runJobInWorker(job Job) {
 		ip = "localhost"
 	} else {
 		log.Printf("%v - Creating spot VM", spotName)
-		ip = createVM(spotName)
+		ip, createErr := createVM(spotName)
+		if createErr != nil {
+			setError(index, createErr.Error())
+			return
+		}
 		log.Printf("%v - Spot VM created. The IP is: %v", spotName, ip)
 	}
 
 	ip = ip + ":" + grpcPort
 
-	conn, err := grpc.Dial(ip, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		log.Fatalf("%v - Did not connect: %v", spotName, err)
+	conn, dialErr := grpc.Dial(ip, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if dialErr != nil {
+		log.Printf("%v - Did not connect: %v", spotName, dialErr)
+		setError(index, dialErr.Error())
+		return
 	}
 	defer conn.Close()
 	client := pb.NewWorkerServiceClient(conn)
@@ -65,11 +78,13 @@ func runJobInWorker(job Job) {
 		ctxPing, cancelPing := context.WithTimeout(context.Background(), time.Second)
 		defer cancelPing()
 
-		_, err := client.Ping(ctxPing, &emptypb.Empty{})
-		if err == nil {
+		_, pingErr := client.Ping(ctxPing, &emptypb.Empty{})
+		if pingErr == nil {
 			break
 		} else if i >= 60 {
-			log.Fatalf("%v - Failed to contact the worker in 1 minute", spotName)
+			log.Printf("%v - Failed to contact the worker in 1 minute", spotName)
+			setError(index, "Failed to contact the worker in 1 minute")
+			return
 		}
 	}
 
@@ -82,9 +97,11 @@ func runJobInWorker(job Job) {
 	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Minute)
 	defer cancel()
 
-	r, err := client.RunJob(ctx, &pb.RunJobRequest{Id: job.Id, Arguments: job.Arguments})
-	if err != nil {
-		log.Fatalf("%v - Failed to run job: %v", spotName, err)
+	r, runErr := client.RunJob(ctx, &pb.RunJobRequest{Id: job.Id, Arguments: job.Arguments})
+	if runErr != nil {
+		log.Fatalf("%v - Failed to run job: %v", spotName, runErr)
+		setError(index, runErr.Error())
+		return
 	}
 
 	resultString := r.GetResult()
@@ -105,12 +122,17 @@ func runJobInWorker(job Job) {
 		// Result JSON
 		jobs[index].Result = resultJson
 	}
+	jobs[index].Error = r.GetError()
 	mu.Unlock()
 
 	if !*local {
 		log.Printf("%v - Deleting spot VM", spotName)
-		deleteVM(spotName)
-		log.Printf("%v - Deleted spot VM", spotName)
+		deleteErr := deleteVM(spotName)
+		if deleteErr != nil {
+			log.Printf("%v - Failed to delete the spot VM: %v", spotName, deleteErr)
+		} else {
+			log.Printf("%v - Deleted spot VM", spotName)
+		}
 	}
 }
 

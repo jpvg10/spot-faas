@@ -3,12 +3,13 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"log"
 	"os/exec"
 )
 
-func createVM(name string) string {
-	output := run("gcloud",
+func createVM(name string) (string, error) {
+	cmdOut, cmdErr := run("gcloud",
 		"compute",
 		"instances",
 		"create",
@@ -33,18 +34,22 @@ func createVM(name string) string {
 		"--format=json",
 	)
 
-	var data CreateResponse
-	err := json.Unmarshal([]byte(output), &data)
-	if err != nil {
-		log.Printf("Could not unmarshal json: %s\n", err)
-		return ""
+	if cmdErr != nil {
+		return "", cmdErr
 	}
 
-	return data[0].NetworkInterfaces[0].NetworkIP
+	var data CreateResponse
+	err := json.Unmarshal([]byte(cmdOut), &data)
+	if err != nil {
+		log.Printf("Could not unmarshal json: %s", err)
+		return "", err
+	}
+
+	return data[0].NetworkInterfaces[0].NetworkIP, nil
 }
 
-func deleteVM(name string) {
-	run("gcloud",
+func deleteVM(name string) error {
+	_, err := run("gcloud",
 		"compute",
 		"instances",
 		"delete",
@@ -52,9 +57,11 @@ func deleteVM(name string) {
 		"--zone=europe-north1-c",
 		"--quiet",
 	)
+
+	return err
 }
 
-func run(command string, args ...string) string {
+func run(command string, args ...string) (string, error) {
 	cmd := exec.Command(command, args...)
 
 	var cmdOut bytes.Buffer
@@ -65,10 +72,10 @@ func run(command string, args ...string) string {
 	err := cmd.Run()
 
 	if err != nil {
-		log.Print(cmdErr.String())
-		log.Fatal(err)
+		log.Printf("Command execution failed:\n%s", cmdErr.String())
+		return "", errors.New(cmdErr.String())
 	}
 
-	// log.Printf("Command output: %s\n", cmdOut.String())
-	return cmdOut.String()
+	// log.Printf("Command output: %s", cmdOut.String())
+	return cmdOut.String(), nil
 }

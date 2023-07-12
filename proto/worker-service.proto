@@ -19,4 +19,5 @@ message RunJobResponse {
   string id = 1;
   string status = 2;
   string result = 3;
+  string error = 4;
 }

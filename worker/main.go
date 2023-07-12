@@ -28,14 +28,15 @@ type server struct {
 }
 
 var sigChan = make(chan os.Signal, 1)
+var interrupted = false
 
-func runJob(args string, resultChan chan string) {
+func runJob(args string, resultChan chan string, errorChan chan string) {
 	dockerCommand := []string{"run"}
 
 	if len(args) > 0 {
 		dockerCommand = append(dockerCommand, "-e", fmt.Sprintf("FN_ARGS=%v", args))
 	}
-	dockerCommand = append(dockerCommand, "-e", "TIMEOUT=120000")
+	dockerCommand = append(dockerCommand, "-e", "TIMEOUT=120000") // Function runs for 2 minutes
 	dockerCommand = append(dockerCommand, *image)
 
 	cmd := exec.Command("docker", dockerCommand...)
@@ -49,28 +50,40 @@ func runJob(args string, resultChan chan string) {
 
 	if err != nil {
 		log.Print(cmdErr.String())
-		log.Fatal(err)
+		errorChan <- cmdErr.String()
+		return
 	}
 
-	log.Printf("Container output: %s\n", cmdOut.String())
-
+	log.Printf("Container output: %s", cmdOut.String())
 	resultChan <- cmdOut.String()
 }
 
 func (s *server) RunJob(ctx context.Context, in *pb.RunJobRequest) (*pb.RunJobResponse, error) {
 	log.Printf("Received job request")
+
+	if interrupted {
+		// Interruption signal was received before
+		log.Printf("Worker interrupted!")
+		return &pb.RunJobResponse{Error: "Worker interrupted", Status: "failed"}, nil
+	}
+
 	args := in.GetArguments()
 
 	resultChan := make(chan string, 1)
-	go runJob(args, resultChan)
+	errorChan := make(chan string, 1)
+	go runJob(args, resultChan, errorChan)
 
 	select {
 	case result := <-resultChan:
 		log.Printf("Job completed")
 		return &pb.RunJobResponse{Result: result, Status: "completed"}, nil
+	case err := <-errorChan:
+		log.Printf("Job execution failed")
+		return &pb.RunJobResponse{Error: err, Status: "failed"}, nil
 	case <-sigChan:
 		log.Printf("Worker interrupted!")
-		return &pb.RunJobResponse{Result: "", Status: "failed"}, nil
+		interrupted = true
+		return &pb.RunJobResponse{Error: "Worker interrupted", Status: "failed"}, nil
 	}
 }
 
