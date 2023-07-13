@@ -98,9 +98,9 @@ func runJobInWorker(job Job) {
 	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Minute)
 	defer cancel()
 
-	r, runErr := client.RunJob(ctx, &pb.RunJobRequest{Id: job.Id, Arguments: job.Arguments}) // fix
+	r, runErr := client.RunJob(ctx, &pb.RunJobRequest{Id: job.Id, Arguments: job.Arguments})
 	if runErr != nil {
-		log.Fatalf("%v - Failed to run job: %v", spotName, runErr) // fix
+		log.Printf("%v - Job returned an error: %v", spotName, runErr)
 		setError(index, runErr.Error())
 		return
 	}

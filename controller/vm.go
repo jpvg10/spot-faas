@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"log"
 	"os/exec"
 )
 
@@ -40,7 +39,6 @@ func createVM(name string) (string, error) {
 	var data CreateResponse
 	err := json.Unmarshal([]byte(cmdOut), &data)
 	if err != nil {
-		log.Printf("Could not unmarshal json: %s", err)
 		return "", err
 	}
 
